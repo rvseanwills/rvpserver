@@ -1,5 +1,4 @@
 const express = require("express");
-const PORT = process.env.PORT || 4000;
 const morgan = require("morgan");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -49,7 +48,7 @@ app.use("/user", userRoutes);
 const facebookRoutes = require("./api/facebook/route/facebook"); //bring in our user routes
 app.use("/facebook", facebookRoutes);
 
-app.listen(4000);
+app.listen(process.env.PORT || 4000);
 
 // https.createServer({credentials, app}, function (req, res) {
 //     res.end('secure!');
