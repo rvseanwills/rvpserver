@@ -16,7 +16,8 @@ const config = require("./config/db");
 const app = express();
 
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", 'https://realvirtualplatform.herokuapp.com');
+    // https://realvirtualplatform.herokuapp.com
+    res.header("Access-Control-Allow-Origin", '*');
     res.header("Access-Control-Allow-Credentials", true);
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     res.header("Access-Control-Request-Headers", 'Origin,X-Requested-With,Content-Type,Accept, application/json');
