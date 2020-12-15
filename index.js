@@ -15,6 +15,15 @@ const config = require("./config/db");
 
 const app = express();
 
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", 'https://realvirtualplatform.herokuapp.com');
+    res.header("Access-Control-Allow-Credentials", true);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header("Access-Control-Request-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
+    res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
+    next();
+});
+
 //configure database and mongoose
 mongoose.set("useCreateIndex", true);
 mongoose
@@ -26,14 +35,7 @@ mongoose
     console.log({ database_error: err });
   });
 // db configuaration ends here
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", 'https://realvirtualplatform.herokuapp.com');
-    res.header("Access-Control-Allow-Credentials", true);
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.header("Access-Control-Request-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
-    res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
-    next();
-});
+
 //configure body parser
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
