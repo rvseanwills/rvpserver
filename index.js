@@ -24,15 +24,6 @@ app.use(function(req, res, next) {
     next();
 });
 
-app.options("*", function (req, res) {
-    res.setHeader("Access-Control-Allow-Origin", 'https://realvirtualplatform.herokuapp.com');
-    res.setHeader("Access-Control-Allow-Credentials", true);
-    res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.setHeader("Access-Control-Request-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
-    res.setHeader("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
-    res.end();
-})
-
 //configure database and mongoose
 mongoose.set("useCreateIndex", true);
 mongoose
