@@ -1,5 +1,4 @@
 const express = require("express");
-const PORT = process.env.PORT || 4000;
 const morgan = require("morgan");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -16,6 +15,16 @@ const config = require("./config/db");
 
 const app = express();
 
+app.use(function(req, res, next) {
+    // https://realvirtualplatform.herokuapp.com
+    res.header("Access-Control-Allow-Origin", '*');
+    res.header("Access-Control-Allow-Credentials", true);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header("Access-Control-Request-Headers", 'Origin,X-Requested-With,Accept,Content-Type,content-type, Authorization');
+    res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Accept,Content-Type,content-type, Authorization');
+    next();
+});
+
 //configure database and mongoose
 mongoose.set("useCreateIndex", true);
 mongoose
@@ -27,9 +36,7 @@ mongoose
     console.log({ database_error: err });
   });
 // db configuaration ends here
-//registering cors
 
-app.use(cors());
 //configure body parser
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -45,7 +52,7 @@ app.use("/user", userRoutes);
 const facebookRoutes = require("./api/facebook/route/facebook"); //bring in our user routes
 app.use("/facebook", facebookRoutes);
 
-app.listen(4000);
+app.listen(process.env.PORT || 4000);
 
 // https.createServer({credentials, app}, function (req, res) {
 //     res.end('secure!');
