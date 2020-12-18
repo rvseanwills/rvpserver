@@ -27,15 +27,9 @@ const userSchema = mongoose.Schema({
     type: String,
     required: [true, "Please Include your password"]
   },
-  business: {
-    business_id : {
-      type: String,
-      required: true
-    },
-    email: {
-      type: String,
-      required: true
-    }
+  business_id: {
+    type: String,
+    required: true
   },
   tokens: [
     {
@@ -61,7 +55,7 @@ userSchema.methods.generateAuthToken = async function() {
 
   const user = this;
   const token = jwt.sign(
-    { _id: user._id, job_description: user.job_description, full_name: user.full_name, account_type: user.account_type, permission_type: user.permission_type, email: user.email, business_id: user.business.business_id },
+    { _id: user._id, job_description: user.job_description, full_name: user.full_name, account_type: user.account_type, permission_type: user.permission_type, email: user.email, business_id: user.business_id },
     "wemanagetokens"
   );
   user.tokens = user.tokens.concat({ token });
@@ -72,14 +66,16 @@ userSchema.methods.generateAuthToken = async function() {
 //this method search for a user by full_name and password.
 userSchema.statics.findByCredentials = async (email, password) => {
   const user = await User.findOne({ email });
-  console.log(user);
   if (!user) {
     throw new Error({ error: "Invalid login details" });
   }
+
   const isPasswordMatch = await bcrypt.compare(password, user.password);
+
   if (!isPasswordMatch) {
     throw new Error({ error: "Invalid login details" });
   }
+
   return user;
 };
 

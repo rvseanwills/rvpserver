@@ -18,13 +18,7 @@ exports.registerNewUser = async (req, res) => {
       permission_type: req.body.permission_type,
       email: req.body.email,
       password: req.body.password,
-      business: {
-        business_id: req.body.business.business_id,
-        email: req.body.business.email,
-        fb_email: req.body.business.fb_email,
-        fb_id: req.body.business.fb_id,
-        fb_accesstoken: req.body.business.fb_accesstoken
-      }
+      business_id: req.body.business_id
     });
     let data = await user.save();
     const token = await user.generateAuthToken(); // here it is calling the method that we created in the model
@@ -36,9 +30,9 @@ exports.registerNewUser = async (req, res) => {
 };
 exports.loginUser = async (req, res) => {
   try {
-    console.log(req.body.email, req.body.password);
     const email = req.body.email;
     const password = req.body.password;
+
 
     const user = await User.findByCredentials(email, password);
 
@@ -47,11 +41,14 @@ exports.loginUser = async (req, res) => {
         .status(401)
         .json({ error: {name: "InvalidCredentialsError"} });
     }
+
     const token = await user.generateAuthToken();
+    console.log(token);
     user.tokens = user.tokens[0];
     res.status(201).json({ user, token });
   } catch (err) {
-    res.status(400).json({ message: err });
+    console.log(err);
+    res.status(400).json({ message: 'Invalid Credentials' });
   }
 };
 
