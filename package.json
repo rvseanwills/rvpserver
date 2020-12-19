@@ -1,6 +1,6 @@
 {
-  "name": "article",
-  "version": "1.0.0",
+  "name": "rvpserver",
+  "version": "1.0.1",
   "description": "article",
   "main": "index.js",
   "scripts": {
