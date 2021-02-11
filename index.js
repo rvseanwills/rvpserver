@@ -49,8 +49,11 @@ app.use(morgan("dev")); // configire morgan
 const userRoutes = require("./api/user/route/user"); //bring in our user routes
 app.use("/user", userRoutes);
 
-const facebookRoutes = require("./api/facebook/route/facebook"); //bring in our user routes
+const facebookRoutes = require("./api/facebook/route/facebook"); //bring in our facebook routes
 app.use("/facebook", facebookRoutes);
+
+const reportRoutes = require("./api/reports/route/report"); //bring in our report routes
+app.use("/report", reportRoutes);
 
 app.listen(process.env.PORT || 4000);
 

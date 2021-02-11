@@ -1,141 +1,32 @@
 const Facebook = require("../model/Facebook");
 const axios = require("axios");
 
+
+// GETNEWSTATS ROUTE
+
+
+
 exports.getNewStats = async (req, res) => {
   try {
 
-
-
-
     var business_id = req.body.business;
-    var fbtoken;
-    var facebookuserid;
     var facebookpageid = 'wemanagebusiness'; //GET THIS FROM DB
-    var facebook_email;
-    var facebook_pages;
-    var client_id = '289313119164357';
-    var client_secret = '0b93b8673fd6c51da81e6f03e30fb083';
     var longlivedtoken;
     var pagetoken;
 
-    if (req.body.facebook == null) {
 
-      //Find a accesstoken in business facebook model
+    Facebook.returnToken(business_id).then( function  (token) {
 
-      Facebook.findByCredential(business_id).then(function (facebook_details) {
+      longlivedtoken = token.user;
+      pagetoken = token.page;
 
-         if (facebook_details == null) {
-          res.send('Need to set up facebook model');
-         }
+      getGraphData()
 
-         longlivedtoken = facebook_details.access_token;
-
-         // facebook_pages = facebook_details.pages;
-
-         console.log(longlivedtoken);
-
-         //Get page token
-
-        getPageToken();
-
-      })
-    }
-    else {
-
-      var fbtoken = req.body.facebook.accessToken;
-      var facebookuserid = req.body.facebook.userID;
-
-      getFacebookDetails();
-
-
-    }
-
-
-
-    function getFacebookDetails() {
-      //Find facebook email using business id
-      Facebook.findByCredential(business_id).then(function (facebook_details) {
-
-         if (facebook_details == null) {
-          res.send('Need to set up facebook model');
-         }
-         facebook_email = facebook_details.facebook_email;
-
-         facebook_pages = facebook_details.pages;
-
-         
-         getLonglivedtoken();
-
-
-      })
-    }
-
-
-
-    
-
-    function getLonglivedtoken() {
-
-      // LONG LIVED TOKEN RETRIEVAL
-      axios.get("https://graph.facebook.com/v9.0/oauth/access_token?grant_type=fb_exchange_token&client_id=" + client_id
-   +"&client_secret=" + client_secret +"&fb_exchange_token=" + fbtoken
-      ).then( function (response) {
-
-        longlivedtoken = response.data.access_token;
-
-        // UPDATE LONG LIVED TOKEN 
-        Facebook.findOneAndUpdate({facebook_email: facebook_email}, {$set:{'access_token': longlivedtoken}}, {new: true, useFindAndModify: false}, (err, doc) => {
-            if (err) {
-                console.log("Something wrong when updating data!");
-            }
-        });
-
-        getPageToken();
-
-      })
-      .catch( function (err) {
-        console.log(err.response.data)
-        res.status(401).json({error_name: 'Could not get longlivedtoken',err: err.response.data});
-      } )
-
-    }
-
-
-
-
-
-    function getPageToken() {
-
-      console.log(longlivedtoken);
-      // SET FACEBOOK PAGE ID
-      axios.get("https://graph.facebook.com/"+facebookpageid+"?fields=access_token&access_token="+longlivedtoken
-      ).then( function (response) {
-        pagetoken = response.data.access_token;
-        
-        //TODO add page functionality
-        // isPage(facebook_pages, facebookpageid).then( function (result) {
-        //   if (result) {
-        //     // Update existing page with token
-        //   } else {
-        //     // Add page id and token
-        //   }
-        // } )
-
-        //GET PAGE GRAPH DATA
-        getGraphData()
-
-      })
-      .catch( function (err) {
-        console.log(err.response.data, 'pagetoken')
-        // res.status(401).json({error_name: 'Could not get Pagetoken',err: err.response.data});
-      })
-    }
-
-    
-
-
+    })
 
     function getGraphData() {
+
+      //TODO: SETUP THE DATE VARIABLR
 
       axios.get("https://graph.facebook.com/v9.0/"+facebookpageid+"/insights?metric=page_views_total,page_fan_adds_unique,page_total_actions,page_engaged_users&since=2020-11-00&period=day", {params: {
         access_token: pagetoken
@@ -159,35 +50,21 @@ exports.getNewStats = async (req, res) => {
       */
     }
 
-
-    
-
-
-
-    async function isPage (pages, page_id) {
-      for (let i = 0; i < pages.length; i++) {
-        if (pages[i].id == page_id) {
-          return await Promise.resolve(true);
-        }
-        if (i == pages.length - 1){
-          return await Promise.resolve(false);
-        }
-      }
-    }
-    
-
-
-
   } catch (err) {
     console.log(err);
     res.status(400).json({ err: err });
   }
 };
 
+
+
+// GETPAGEDETAILS ROUTE
+
+
+
 exports.getPageDetails = async (req, res) => {
 
   try {
-
 
     var business_id = req.userData.business_id;
     var fbpageid = 'wemanagebusiness'; //GET THIS FROM DB 
@@ -212,8 +89,122 @@ exports.getPageDetails = async (req, res) => {
 
   } catch (err) {
 
-
+    res.send({error_name: 'Could not get page details',err: err.response.data.error})
 
   }
 
 };
+
+
+
+// GETPAGEPOSTS ROUTE
+
+
+
+exports.getPagePosts = async (req, res) => {
+
+  try {
+
+    var business_id = req.userData.business_id;
+    var fbpageid = 'wemanagebusiness'; //GET THIS FROM DB
+    // Call the /{page-id}/posts endpoints for posts 
+    Facebook.findByCredential(business_id).then( facebook => {
+
+      axios.get("https://graph.facebook.com/v9.0/"+ fbpageid +"/posts?fields=full_picture,message,created_time&since=2020-11-00", {params: {
+        access_token: facebook.access_token,
+      }}).then( function (response) {
+        res.status(201).json(response.data);
+
+
+      }).catch( function (err) {
+        console.log(err.response.data, 'posts')
+        res.status(401).json({error_name: "Could not get posts", err});
+      })
+
+    })
+
+  } catch (err) {
+    console.log(err)
+    res.status(400).send({err: err.data})
+  }
+
+};
+
+
+
+// GET USER PAGES
+
+
+
+exports.getPages = async (req, res) => {
+
+  try {
+
+    var business_id = req.userData.business_id;
+    // Call the /{page-id}/posts endpoints for posts 
+    Facebook.findByCredential(business_id).then( facebook => {
+
+      console.log(facebook.pages, 'pages available')
+
+      // Add only pages that the account has access to.
+
+      // Amount of pages attached to account
+
+      var pages_avail = facebook.pages.length;
+
+      // Create a recursive function which gets page details for all available facebook pages
+
+      var i = 0;
+
+      var isErrors = false;
+      var failedPages = [];
+
+      singlePageDetails();
+
+      function singlePageDetails (completedPages = []) {
+        console.log(facebook.pages[i]);
+        axios.get("https://graph.facebook.com/v9.0/"+ facebook.pages[i].id +"?fields=cover,picture", {params: {
+          access_token: facebook.access_token,
+        }}).then( function (response) {
+
+          completedPages.push(response.data);
+
+          handleIteration(completedPages)
+
+        }).catch( function (err) {
+
+          isErrors = true;
+          failedPages.push(facebook.pages[i])
+
+          console.log(facebook.pages[i], 'failed page', err.response.data)
+
+          handleIteration(completedPages, isErrors, failedPages)
+          
+        })
+
+
+        function handleIteration (completedPages, isErrors = false, failedPages = []) {
+
+          if ( i == pages_avail-1) {
+            if (isErrors) {
+              res.status(302).json({msg: "Some errors with pages", failedPages});
+            } else {
+              res.status(201).json(completedPages);
+            }
+          } else {
+
+            i++
+            singlePageDetails(completedPages);
+          }
+
+        }
+
+      }
+    })
+
+  } catch (err) {
+    console.log(err)
+    res.status(400).send({err: err.data})
+  }
+
+}
