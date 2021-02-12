@@ -3,40 +3,9 @@ const Facebook = require("../../facebook/model/Facebook");
 
 const axios = require("axios");
 
-//Move this array
-const implemetedNetworks = ['facebook'];
 
-
-// This function also checks if the insights data history has been fetched from the social network
-exports.getMeta = (req, res) => {
-  try {
-    console.log('1');
-    //Setup needed data
-    var r_id = req.body.report_id;
-    
-
-    //Get the report meta data from db
-    Report.findMeta(r_id).then( function (meta_data) {
-
-      console.log( meta_data, 'META' );
-
-      //If no data history needs to be fetched then return meta data
-      if ( meta_data.data_history ) {
-        res.status(201).json({ msg: 'Data history has been loaded', data: meta_data });
-      } else {
-        res.status(201).json({ msg: 'Data history has not been loaded', data: meta_data })
-      }
-
-    } )
-
-  } catch (err) {
-    console.log(err, 'Error finding report meta data');
-    res.status(400).json({ err: err });
-  }
-};
-
+//This api checks if there all data is updated and then save the data
 exports.getData = (req, res) => {
-
     try {
 
       //Setup needed data
@@ -50,6 +19,13 @@ exports.getData = (req, res) => {
       //Get the report meta data from db
       Report.findOne({_id: r_id})
       .then( function (report) {
+
+        //Check if data is updated, if it is then send the data
+        if (report.latest_date == todaysDate()){
+          res.status(200).json({ msg: 'No data needed to be updated', data: report.data_weeks })
+        }
+
+        //SETUP TO GET NEW DATA
 
         //check the insight_data has an array of objects, if it doesnt then it is broke
         if (!Array.isArray(report.data_weeks)) {
@@ -67,15 +43,18 @@ exports.getData = (req, res) => {
           time.since = report.latest_date;
         }
 
-        //Move this function into the interface.
-        implemetedNetworks.forEach( function (network) {
-          //Loop the current implemented social media networks until a match is reached
-          if ( report.social_media == network ) {
-            //Run the networks function
-            //This function needs to get all the insights data that is available from the media network
-            reportsInterface[network](res, r_id, report.token, report.business_id, report.data_endpoint, report.insight_type, report.page_id, report.data_weeks, time);
-          }
-        } )
+        const networkSupported = reportsInterface.interfaceGuide(report.social_media);
+
+        if (networkSupported) {
+          //Run the networks function
+          //This function needs to get all the insights data that is available from the media network
+          reportsInterface[network](res, r_id, report.token, report.business_id, report.data_endpoint, report.insight_type, report.page_id, report.data_weeks, time);
+        } else {
+          res.status(201).json({ msg: 'Network was not supported, check the report for errors, sending previous data', data: report.data_weeks })
+        }
+        
+
+        
       } )
 
     } catch (err) {
@@ -91,7 +70,18 @@ exports.getData = (req, res) => {
 //Reports library of functions to help with fetching data for reports
 
 const reportsInterface = {
-
+  supportedNetworks: ['facebook'],
+  interfaceGuide: function(social_media) {
+    //Move this function into the interface.
+    this.supportedNetworks.forEach( function (network) {
+      //Loop the current implemented social media networks until a match is reached
+      if ( social_media == network ) {
+        return true;
+      }
+    })
+    //network not supported
+    return false;
+  },
   facebook: function (res, r_id, endpoint_token, b_id, endpoint, insight_type, p_id, insight_data, time) {
     
     if (endpoint_token == null || endpoint_token == 'null'){
@@ -310,10 +300,9 @@ const reportsInterface = {
       function done (doc, err) {
         res.status(200).json({ msg: 'Data history loaded ' + week_counter + ' weeks of data.', data: weeks_data })
         if (err) {
-          console.log(err, 'hi');
+          console.log(err, 'error saving document');
           return false
         }
-        console.log('hi error')
       } 
       
     }
