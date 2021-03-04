@@ -1,8 +1,7 @@
+const ReportCollection = require("../../reportCollection/model/Collection");
 const Report = require("../model/Report");
-const Facebook = require("../../facebook/model/Facebook");
 
 const axios = require("axios");
-
 
 //This api checks if there all data is updated and then save the data
 exports.getData = (req, res) => {

@@ -1,0 +1,3 @@
+exports.getCollection = (req, res) => {
+
+}
