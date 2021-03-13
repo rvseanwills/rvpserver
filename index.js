@@ -15,15 +15,17 @@ const config = require("./config/db");
 
 const app = express();
 
-app.use(function(req, res, next) {
-    // https://realvirtualplatform.herokuapp.com
-    res.header("Access-Control-Allow-Origin", '*');
-    res.header("Access-Control-Allow-Credentials", true);
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.header("Access-Control-Request-Headers", 'Origin,X-Requested-With,Accept,Content-Type,content-type, Authorization');
-    res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Accept,Content-Type,content-type, Authorization');
-    next();
-});
+app.use(cors())
+app.options('*', cors())
+// app.use(function(req, res, next) {
+//     // https://realvirtualplatform.herokuapp.com
+//     res.header("Access-Control-Allow-Origin", '*');
+//     res.header("Access-Control-Allow-Credentials", true);
+//     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+//     res.header("Access-Control-Request-Headers", 'Origin,X-Requested-With,Accept,Content-Type,content-type, Authorization');
+//     res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Accept,Content-Type,content-type, Authorization');
+//     next();
+// });
 
 //configure database and mongoose
 mongoose.set("useCreateIndex", true);
