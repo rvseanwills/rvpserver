@@ -23,7 +23,7 @@ exports.registerNewUser = async (req, res) => {
     let data = await user.save();
     const token = await user.generateAuthToken(); // here it is calling the method that we created in the model
     
-    res.status(201).json({ data, token });
+    res.status(201).json({ token });
   } catch (err) {
     res.status(400).json({ err: err });
   }
